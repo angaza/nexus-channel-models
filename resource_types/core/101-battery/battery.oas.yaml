@@ -1,0 +1,196 @@
+---
+swagger: '2.0'
+info:
+  title: Battery
+  version: 0.7.0
+  license:
+    name: Angaza Data Model License (MIT License)
+    url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
+    x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  #- application/vnd.ocf+cbor
+  - application/json
+paths:
+  "/batt":  # suggested URI
+    get:
+      summary: Retrieve current battery status
+      description: This Resource describes the attributes associated with a battery.
+        The fields 'cp' (charge percentage, 0-100%) and 'mv' (battery voltage
+        in millivolts) are the only required properties.
+
+        Adapted from OCF spec [`oic.r.energy.battery`](https://www.oneiota.org/revisions/6148)
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      responses:
+        '200':
+          description: ''
+          x-example:
+            # rt, rtr, and if are not typically returned
+            # (requires optional 'oic.if.baseline' interface query support)
+            rt:
+            - angaza.com.nexus.channel.core.battery
+            rtr:
+            - 101
+            if:
+            - oic.if.rw
+            cp: 50
+            ca: 3000
+            cg: true
+            ds: false
+            lb: false
+            vb: 11635
+            th: 20
+            ft: false
+            ss: 4
+          schema:
+            "$ref": "#/definitions/Battery"
+    post:
+      summary: 'Update battery low-voltage threshold'
+      description: 'Update battery threshold (th) if supported.'
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      - name: body
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/BatteryUpdate"
+        x-example:
+          th: 20
+      responses:
+        '200':
+          description: ''
+          x-example:
+            th: 20
+          schema:
+            "$ref": "#/definitions/BatteryUpdate"
+        '400':
+          description: Provided payload was not understood or ill-formatted.
+        '403':
+          description: Requester not authorized to update threshold.
+
+# Query parameters optional, Channel Core does not require interface query support
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+    - oic.if.rw
+definitions:
+  Battery:
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.channel.core.battery
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 101
+        maximum: 101
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+          enum:
+          - oic.if.rw  # oic.if.baseline optional
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      vb:
+        description: The current voltage of the battery in millivolts.
+        readOnly: true
+        type: integer
+        format: uint
+        example: 11635
+      cp:
+        description: The current charge percentage.
+        maximum: 100
+        minimum: 0
+        readOnly: true
+        type: integer
+        format: uint
+        example: 50
+      th:
+        description: The threshold percentage for the low battery warning.
+          When battery capacity in percent (`cp`) drops below this value, the
+          `lb` (low battery) warning will turn 'true'.
+        maximum: 100
+        minimum: 0
+        type: integer
+        format: uint
+        example: 20
+
+      ds:
+        description: True if discharging, false otherwise.
+        readOnly: true
+        type: boolean
+      cg:
+        description: True if battery is charging, else false.
+        readOnly: true
+        type: boolean
+      lb:
+        description: Status of the low battery warning based upon the threshold
+          defined by `th`.
+        readOnly: true
+        type: boolean
+      ca:
+        description: The total capacity in milliAmp-hours (mAh).
+        readOnly: true
+        type: integer
+        format: uint
+        example: 32000
+      ft:
+        description: True if battery defect or fault detected.
+        readOnly: true
+        type: boolean
+        example: false
+      ss:
+        description: Seconds since the observed data in this resource was
+          measured.
+        minimum: 0
+        readOnly: true
+        type: integer
+        format: uint
+        example: 4 
+    type: object
+    required:
+    - cp  # charge percentage
+    - vb  # battery voltage
+  BatteryUpdate:
+    properties:
+      th:
+        description: The threshold percentage for the low battery warning.
+        maximum: 100
+        minimum: 0
+        type: integer
+        example: 20
+    type: object
+    required:
+    - batterythreshold

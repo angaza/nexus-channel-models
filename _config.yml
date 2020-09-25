@@ -1,0 +1,5 @@
+theme: jekyll-theme-minimal
+exclude: [README.md]
+title: Angaza Nexus Channel Core
+description: Interoperability for off-grid devices
+logo: /assets/img/sunburst.png
