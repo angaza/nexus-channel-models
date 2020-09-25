@@ -116,7 +116,7 @@ definitions:
         format: uint
         example: 83
       pi:
-        description: Instantaneous 'power input', in centiwatts.
+        description: Instantaneous 'power input', in deciwatts.
         readOnly: true
         type: integer
         format: uint
@@ -148,7 +148,7 @@ definitions:
         example: 1
       ft:
         description: True if there is a detectable fault for this source
-          (such as a short).
+          (such as a reversed polarity DC input).
         readOnly: true
         type: boolean
         example: false
@@ -178,6 +178,7 @@ definitions:
       ss:
         description: Seconds since the observed data in this resource was
           measured.
+        minimum: 0
         readOnly: true
         type: integer
         format: uint
