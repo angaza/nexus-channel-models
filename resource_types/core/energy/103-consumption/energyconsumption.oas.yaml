@@ -4,38 +4,40 @@ info:
   title: Energy Consumption
   version: 0.7.0
   license:
-    name: MIT License
+    name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
     x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
 schemes:
   - coap
 consumes:
-  - application/vnd.ocf+cbor
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
 produces:
-  - application/vnd.ocf+cbor
+  #- application/vnd.ocf+cbor
+  - application/json
 paths:
   "/eout":  # suggested URI
     get:
-      description: This Resource describes the attributes associated with a
-        load (or loads) connected to this devices consuming energy.
+      summary: Retrieve current load/output energy consumption
+      description: |
+        This Resource describes the attributes associated with a
+        load (or loads) connected to this device consuming energy.
 
-        The property 'po' output powe
-        df
-         vo
-         ao
-         ss
+        If available, up to two 'sub-loads' can also be exposed to provide
+        more details about the split of energy to different simultaneous
+        loads.
 
-        The Property 'st' (sourcetype) is an enum integer value indicating the type
-        of power source. 'sf' (sourcefault) is true if there is a detectable problem
-        with the power source (such as a short), false otherwise.
-        'pi'  is the instantaneous power input being provided by the source in
-        centiwatts. 'vi' is the current voltage of the power source in millivolts
-        (RMS if AC source). 'ai' (ampinput) is the current power being supplied
-        by the source, in centiamps.
-        'ss' is the seconds since the measurement was sampled.
+        The minimum set of properties to implement are 'ao' and 'po'.
 
-        Adapted from OCF specs 'oic.r.energy.generation' and 'oic.r.powersource',
-        as composite resources with linked lists are not currently supported.
+        All properties of this resource are read-only.
+
+        Example `GET` response body in CBOR:
+
+        Originally derived from from OCF specs [`oic.r.energy.generation`](https://www.oneiota.org/revisions/6172)
+        and [`oic.r.energy.overload`](https://www.oneiota.org/revisions/6174)
+
       parameters:
       - "$ref": "#/parameters/interface"
       responses:
@@ -53,8 +55,8 @@ paths:
             st: 1  # solar
             ft: false  # no fault detected
             po: 2000  # 20W
-            vi: 24043  # 24.04V
-            ai: 832  # 0.832A
+            vo: 24043  # 24.04V
+            ao: 832  # 0.832A
             ss: 4  # values valid as of 4 seconds ago
           schema:
             "$ref": "#/definitions/Battery"
@@ -69,11 +71,12 @@ definitions:
   Battery:
     properties:
       rt:
-        description: The Resource Type.
-          (only reported if oic.if.baseline interface query is supported)
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
         items:
           enum:
-          - angaza.com.nexus.channel.core.powersource
+          - angaza.com.nexus.channel.core.energy.consumption
           maxLength: 64
           type: string
         minItems: 1
@@ -98,61 +101,92 @@ definitions:
         uniqueItems: true
         readOnly: true
         type: array
-      st:
-        description: Type of power generator.
-          Possible types -
-            0 = Disconnected/None
-            1 = Solar
-            2 = DC Grid/microgrid (as a source only)
-            3 = AC Grid/microgrid (as a source only)
-            4 = Wind Turbine
-            5 = Hydro Turbine
-            6 = Petrol/Diesel Generator
-            100 = Unknown
+      po:
+        description: Instantaneous total load 'power output', in centiwatts.
         readOnly: true
         type: integer
-        enum:
-          - 0
-          - 1
-          - 2
-          - 3
-          - 4
-          - 5
-          - 6
-          - 100
-      df:
-        description: True if there is a fault or defect on the generation side
-          ('source fault', such as a short).
+        format: uint
+        example: 125
+      ldt:
+        description: |
+          Array with one entry for each connected load type.
+          Possible types -
+            * 1 = Generic Load/Type Unknown
+            * 5 = USB 5V Charging (Single load)
+            * 6 = USB 5V Charging (Bank of phones/loads)
+            * 10 = Home Lighting
+            * 20 = Industrial/Work Lighting
+            * 30 = Refrigeration
+            * 40 = Water Pump
+            * 50 = Fan
+            * 60 = Radio
+            * 70 = Television
+            * 80 = Laptop PC
+            * 90 = Desktop PC
+            * 100 = Speaker Sound System (PA)
+            * 110 = Textile (Sewing) Machine
+            * 120 = Barber Equipment (Clippers)
+        readOnly: true
+        type: array
+        minItems: 0
+        items:
+          type: integer
+          enum:
+            - 1
+            - 5
+            - 6
+            - 10
+            - 20
+            - 30
+            - 40
+            - 50
+            - 60
+            - 70
+            - 80
+            - 90
+            - 100
+            - 110
+            - 120
+        example: [5, 70]
+      lda:
+        description: |
+          Current (in )
+      ft:
+        description: True if there is a detectable fault for any output/load
+          (such as a short).
         readOnly: true
         type: boolean
-      pi:
-        description: Instantaneous 'power input', in centiwatts.
-        readOnly: true
-        type: integer
-      vi:
-        description: Instantaneous 'voltage input', in millivolts.
-        readOnly: true
-        type: integer
-      ai:
-        description: Instantaneous 'current input', in centiamps.
-        type: integer
-      eg:
+        example: false
+      eo:
         description: |
-          'Energy generated' in Watt-hours(Wh).
+          'Energy output' in deciwatt-hours(Wh / 10). Computed over a time
+          window defined by `eos` and `eop`.
         type: integer
-      ep:
+      eos:
         description: |
-          'Energy period', in minutes, over which eg is measured.
-          If `eg` reports watt-hours over the last hour, `ep` has a value of 60.
+          'Energy output start'. Minutes in the past (minutes ago)
+          when the reported `eg` value began accumulation.
         type: integer
+        format: uint
+        example: 120
+      eop:
+        description: |
+          'Energy output period'. Minutes since `eos` over which
+          the value of `eo` was accumulated. For example, if `eos` is 60, and
+          `eop` is 60, the value of `eg` represents the watt-hours generated during
+          the past hour.
+        type: integer
+        format: uint
+        example: 60
       ss:
         description: Seconds since the observed data in this resource was
           measured.
+        minimum: 0
         readOnly: true
         type: integer
         format: uint
 
+
     type: object
     required:
-    - vi  # millivolts from input
-    - ai  # centiamps from input
+    - po  # millivolts from input
