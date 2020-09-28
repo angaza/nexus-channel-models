@@ -1,0 +1,251 @@
+---
+swagger: '2.0'
+info:
+  title: Demand Response Load Control (DRLC)
+  version: 0.7.0
+  license:
+    name: Angaza Data Model License (MIT License)
+    url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
+    x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  #- application/vnd.ocf+cbor
+  - application/json
+paths:
+  "/drlc":  # suggested URI
+    get:
+      summary: Retrieve current DRLC state (load shedding)
+      description: |
+        This Resource describes the attributes associated with demand response
+        load management on this device ('load shedding').
+
+        Demand response is used to intelligently coordinate appliances and shed
+        'nonessential' load during times when energy must be conserved for more
+        critical loads.
+
+        Typically, one device in a local network is responsible for managing
+        the demand of other devices by `POST`ing updates to other device
+        "DRLC" resource instances, which then update their consumption (if
+        possible) to meet the request of the managing device.
+
+        A DRLC request is always *temporary*, that is, it has a duration after
+        which the managed device may resume whatever power consumption scheme
+        preferred by its local controls/settings.
+
+        Example `GET` response body in CBOR:
+          `BF626372046274730A626475183C626F76F4626F70F5FF`
+
+        Example `POST` request payload in CBOR:
+          `BF62747314626475183C62637204FF`
+
+        Adapted from OCF spec [`oic.r.energy.drlc`](https://www.oneiota.org/revisions/6170) and
+        informed by ["Zigbee/HA Smart Energy Profile"](https://zigbeealliance.org/wp-content/uploads/2019/11/docs-07-5356-19-0zse-zigbee-smart-energy-profile-specification.pdf).
+
+        Note: A separate resource type may be created to handle local 'price based'
+        energy management as described in the "Local Power Distribution"
+        research by Dr. Nordman (http://nordman.lbl.gov/).
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      responses:
+        '205':
+          description: ''
+          x-example:
+            cr: 4
+            ts: 10
+            du: 60
+            op: true
+            ov: true
+          schema:
+            "$ref": "#/definitions/DRLC"
+    post:
+      summary: 'Request new load-shedding event'
+      description: 'Update demand response parameters if supported.'
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      - name: body
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/DRLCUpdate"
+        x-example:
+          th: 20
+      responses:
+        '204':
+          description: ''
+          x-example:
+            th: 20
+          schema:
+            "$ref": "#/definitions/DRLCUpdate"
+        '400':
+          description: Provided payload was not understood or ill-formatted.
+        '403':
+          description: Requester not authorized to request load shedding.
+
+# Query parameters optional, Channel Core does not require interface query support
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+    - oic.if.rw
+    - oic.if.baseline
+definitions:
+  DRLC:
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.channel.core.energy.drlc
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 201
+        maximum: 201
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+          enum:
+          - oic.if.rw  # oic.if.baseline optional
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      cr:
+        description: |
+          Criticality, on a scale of 1-10, indicating how severe the event
+          is. Types of criticality (adopted from Zigbee Smart Energy Standard):
+            * 1 = "Green"/Power saving requested (voluntary)
+            * 2-6 = Increasing levels of criticality, application-defined (voluntary)
+            * 7 = Emergency (Mandatory)
+            * 8 = Planned outage (Mandatory)
+            * 9 = Service Disconnect (Mandatory)
+
+          2-6 are application specific. For example, a refrigerator manufacturer
+          may interpret criticality 3 as meaning 'increase temperature setpoint
+          by 0.5C', and criticality 4 as 'increase temperature setpoint by 0.8C'.
+          However, the definitions *must* imply reduced power consumption for
+          increased levels of criticality.
+
+          Upon receiving any criticality level 7-9, the receiving device must
+          shed the requested load.
+        type: integer
+        enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          - 9
+        example: 4
+      ts:
+        description: |
+          The time in the future, in minutes, when the requested demand response
+          action should be applied/started.
+          Permitted to be negative as this value may be 'read' via a GET request
+          after the start time has already elapsed.
+        minimum: -1440
+        maximum: 1440
+        type: integer
+        format: int
+        example: 10
+      du:
+        description: |
+          The duration, in minutes, of the demand response signal.
+          (The maximum duration is 1 day or 1440 minutes).
+          A value of 0 means 'no demand response' or 'cancel existing
+          demand response behavior' (go to an 'unrestricted' operating mode).
+        minimum: 0
+        maximum: 1440
+        type: integer
+        format: uint
+        example: 60
+      ov:
+        description: |
+          True if customer has locally overridden demand response
+          request.
+        readOnly: true
+        type: boolean
+        example: false
+      op:
+        description: |
+          True if local customer overrides are permitted, false if demand
+          response requests will always be honored if possible.
+        readOnly: true
+        type: boolean
+        example: true
+
+    type: object
+    required:
+    - cr
+    - ts
+    - du
+  DRLCUpdate:
+    properties:
+      ts:
+        description: |
+          The time in the future, in minutes, when the requested demand response
+          action should be applied/started.
+        minimum: 0
+        maximum: 1440
+        type: integer
+        example: 20
+      du:
+        description: |
+          The duration, in minutes, of the demand response signal.
+          (The maximum duration is 1 day or 1440 minutes).
+          A value of 0 means 'no demand resposne' or 'cancel existing
+          demand response behavior' (go to an 'unrestricted' operating mode).
+        minimum: 0
+        maximum: 1440
+        type: integer
+        format: uint
+        example: 60
+      cr:
+        description: |
+          Requested 'criticality' level of load shedding, higher value
+          indicates higher criticality. 7-9 must cause a response in the
+          receiving device.
+        type: integer
+        enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          - 9
+        example: 4
+    type: object
+    required:
+    - th

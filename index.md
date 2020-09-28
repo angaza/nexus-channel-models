@@ -23,7 +23,7 @@ it might store this information in a [sample log](resource_types/core/301-sample
 allowing other application logic to make decisions based on stored
 load data.
 
-An appliance (like a freezer) might expose a [demand response](resource_types/core/drlc.oas.yaml)
+An appliance (like a freezer) might expose a [demand response](resource_types/core/energy/201-drlc/redoc_wrapper.md)
 resource, enabling coordinated energy management with an 'energy management'
 device (like the SHS above) by enabling the concept of 'requested' and
 'granted' power consumption amounts via resource properties. A freezer might
