@@ -55,7 +55,7 @@ paths:
             egp: 60  # eg is measured in 1-hour periods
             ss: 4  # values valid as of 4 seconds ago
           schema:
-            "$ref": "#/definitions/Battery"
+            "$ref": "#/definitions/Energygeneration"
 
 # Query parameters optional, Channel Core does not require interface query support
 parameters:
@@ -67,7 +67,7 @@ parameters:
     - oic.if.rw
     - oic.if.baseline
 definitions:
-  Battery:
+  Energygeneration:
     properties:
       rt:
         description: |
@@ -105,7 +105,9 @@ definitions:
         readOnly: true
         type: array
       vi:
-        description: Instantaneous 'voltage input', in millivolts.
+        description: |
+          Instantaneous 'voltage input', in millivolts.
+          (RMS if AC).
         readOnly: true
         type: integer
         format: uint
@@ -123,7 +125,7 @@ definitions:
         example: 199
       st:
         description: |
-          Type of power generator. Possible types -
+          Type of power generator. Known types -
             * 0 = Disconnected/None
             * 1 = DC Solar
             * 2 = AC Grid/microgrid (as a source)

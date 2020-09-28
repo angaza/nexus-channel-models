@@ -25,21 +25,24 @@ paths:
         This Resource describes the attributes associated with a
         load (or loads) connected to this device consuming energy.
 
-        If available, up to two 'sub-loads' can also be exposed to provide
-        more details about the split of energy to different simultaneous
-        loads.
+        An instance of this resource may indicate the total output power to
+        all loads, or multiple instances of this resource may be used to
+        indicate separate power for each sub-load (for instance, if the
+        implementing device is able to detect power going to television vs.
+        lighting).
 
-        The minimum set of properties to implement are 'ao' and 'po'.
+        The minimum set of properties to implement are `ao` and `vo`.
 
         All properties of this resource are read-only.
 
         Example `GET` response body in CBOR:
+          `BF62766F192EF562616F186862706F187D636C64741846626674F462656F0063656F73187863656F70183C62737300FF`
 
         Originally derived from from OCF specs [`oic.r.energy.generation`](https://www.oneiota.org/revisions/6172)
         and [`oic.r.energy.overload`](https://www.oneiota.org/revisions/6174)
 
       parameters:
-      - "$ref": "#/parameters/interface"
+      # - "$ref": "#/parameters/interface"
       responses:
         '200':
           description: ''
@@ -59,7 +62,9 @@ paths:
             ao: 832  # 0.832A
             ss: 4  # values valid as of 4 seconds ago
           schema:
-            "$ref": "#/definitions/Battery"
+            "$ref": "#/definitions/Energyconsumption"
+
+# Query parameters optional, Channel Core does not require interface query support
 parameters:
   interface:
     in: query
@@ -68,7 +73,7 @@ parameters:
     enum:
     - oic.if.rw
 definitions:
-  Battery:
+  Energyconsumption:
     properties:
       rt:
         description: |
@@ -88,8 +93,8 @@ definitions:
           (only reported if oic.if.baseline interface query is supported)
         readOnly: true
         type: integer
-        minimum: 102
-        maximum: 102
+        minimum: 103
+        maximum: 103
       if:
         description: The OCF Interface set supported by this Resource.
           (only reported if oic.if.baseline interface query is supported)
@@ -101,22 +106,39 @@ definitions:
         uniqueItems: true
         readOnly: true
         type: array
+      vo:
+        description: |
+          Instantaneous 'voltage output', in millivolts.
+          (RMS if AC).
+        readOnly: true
+        type: integer
+        format: uint
+        example: 12021
+      ao:
+        description: Instantaneous 'current output', in centiamps.
+        type: integer
+        format: uint
+        example: 104
       po:
-        description: Instantaneous total load 'power output', in centiwatts.
+        description: Instantaneous load 'power output', in deciwatts.
         readOnly: true
         type: integer
         format: uint
         example: 125
       ldt:
         description: |
-          Array with one entry for each connected load type.
-          Possible types -
-            * 1 = Generic Load/Type Unknown
+          Type of output load. Known types -
+            * 0 = Disconnected/None
+            * 1 = Total (Sum of all loads)
             * 5 = USB 5V Charging (Single load)
             * 6 = USB 5V Charging (Bank of phones/loads)
             * 10 = Home Lighting
             * 20 = Industrial/Work Lighting
-            * 30 = Refrigeration
+            * 30 = Refrigeration (Generic)
+            * 31 = Agriculture Cold-Chain Refrigeration
+            * 32 = Household Refrigeration
+            * 33 = SME Refrigeration
+            * 34 = Ice Machine
             * 40 = Water Pump
             * 50 = Fan
             * 60 = Radio
@@ -126,34 +148,19 @@ definitions:
             * 100 = Speaker Sound System (PA)
             * 110 = Textile (Sewing) Machine
             * 120 = Barber Equipment (Clippers)
+            * 130 = Office Equipment
+            * 140 = Hand Power Tools
+            * 150 = Mills, Grinders, Pulpers, Presses
+            * 160 = Heating
+            * 161 = Rice Cooker
+            * 162 = Kettle
+            * 162 = Clothes Iron
         readOnly: true
-        type: array
-        minItems: 0
-        items:
-          type: integer
-          enum:
-            - 1
-            - 5
-            - 6
-            - 10
-            - 20
-            - 30
-            - 40
-            - 50
-            - 60
-            - 70
-            - 80
-            - 90
-            - 100
-            - 110
-            - 120
-        example: [5, 70]
-      lda:
-        description: |
-          Current (in )
+        type: integer
+        example: 70
       ft:
-        description: True if there is a detectable fault for any output/load
-          (such as a short).
+        description: True if there is a detectable fault for this load (such
+          as a short).
         readOnly: true
         type: boolean
         example: false
@@ -189,4 +196,5 @@ definitions:
 
     type: object
     required:
-    - po  # millivolts from input
+    - vo
+    - ao
