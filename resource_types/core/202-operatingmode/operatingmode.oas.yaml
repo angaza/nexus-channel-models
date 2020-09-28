@@ -1,0 +1,181 @@
+---
+swagger: '2.0'
+info:
+  title: Operating Mode
+  version: 0.7.0
+  license:
+    name: Angaza Data Model License (MIT License)
+    url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
+    x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  #- application/vnd.ocf+cbor
+  - application/json
+paths:
+  "/mode":  # suggested URI
+    get:
+      summary: Retrieve current device operating mode
+      description: |
+        This Resource describes the attributes associated with a device
+        specific 'operating mode'.
+
+        The possible operating modes are device-dependent, but a property
+        is provided for the device to list the 'supported' modes.
+
+        The anticipated use of this resource is in coordination with a rich UI,
+        where a user can view the 'supported modes' (`sm`) enum, and select a
+        desired option.
+
+        Example `GET` response body in CBOR:
+          `BF62736D846966756C6C53706565646968616C6653706565646D7661726961626C655370656564636F6666626D6F6966756C6C5370656564626D7005FF`
+
+
+        Adapted from OCF spec [`oic.r.mode`](https://www.oneiota.org/revisions/6203).
+
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      responses:
+        '205':
+          description: ''
+          x-example:
+            sm: ["fullSpeed", "halfSpeed", "off"]
+            mo: "fullSpeed"
+            mp: 5
+          schema:
+            "$ref": "#/definitions/Operatingmode"
+    post:
+      summary: 'Request new operating mode'
+      description: |
+        'Update operating mode of device'
+
+        Example `POST` request payload in CBOR:
+            `BF626D6F14626D7005FF`
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      - name: body
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/OperatingmodeUpdate"
+        x-example:
+            mo: "fullSpeed"
+      responses:
+        '204':
+          description: ''
+          x-example:
+            mo: "fullSpeed"
+          schema:
+            "$ref": "#/definitions/OperatingmodeUpdate"
+        '400':
+          description: Provided payload was not understood or ill-formatted.
+        '403':
+          description: Requester not authorized to request mode parameter.
+
+# Query parameters optional, Channel Core does not require interface query support
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+    - oic.if.rw
+    - oic.if.baseline
+definitions:
+  Operatingmode:
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.channel.core.operatingmode
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 202
+        maximum: 202
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+          enum:
+          - oic.if.rw  # oic.if.baseline optional
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      sm:
+        description: |
+          Array of supported modes that the device supports as strings.
+
+          The contents of this array will depend on the specific implementing
+          device.
+        type: array
+        minItems: 1
+        uniqueItems: True
+        items:
+          readOnly: True
+        example: ["fullSpeed", "halfSpeed", "variableSpeed", "off"]
+      mo:
+        description: |
+          The current operating mode of the device. Must be a value from
+          the list `sm`.
+        type: string
+        format: text
+        example: "variableSpeed"
+      mp:
+        description: |
+          Optional integer 'mode parameter', meaning is context dependent.
+          May be used in coordination with certain mode definitions to provide
+          more configurability to the end-user.
+        minimum: 0
+        type: integer
+        format: uint
+        example: 5
+    type: object
+    required:
+    - sm
+    - mo
+  OperatingmodeUpdate:
+    properties:
+      mo:
+        description: |
+          The current operating mode of the device. Must be a value from
+          the list `sm`.
+        type: string
+        format: text
+        example: "fullSpeed"
+      mp:
+        description: |
+          Optional integer 'mode parameter', meaning is context dependent.
+          May be used in coordination with certain mode definitions to provide
+          more configurability to the end-user.
+        minimum: 0
+        type: integer
+        format: uint
+        example: 5
+    type: object
+    required:
+    - mo

@@ -23,6 +23,11 @@ it might store this information in a [sample log](resource_types/core/301-sample
 allowing other application logic to make decisions based on stored
 load data.
 
+Or, consider the case of a solar home system with expansion battery packs. Each
+of the battery packs might expose resources sharing its *own* battery state, while
+also allowing another 'authorized' device to modify parameters like minimum
+safe battery capacity in a standard way.
+
 An appliance (like a freezer) might expose a [demand response](resource_types/core/energy/201-drlc/redoc_wrapper.md)
 resource, enabling coordinated energy management with an 'energy management'
 device (like the SHS above) by enabling the concept of 'requested' and
@@ -31,10 +36,12 @@ lower its requested power at night (when the temperature is lower), allowing
 the system controller to 'free up' more energy for lighting or entertainment
 uses in the evening.
 
-Or, consider the case of a solar home system with expansion battery packs. Each
-of the battery packs might expose resources sharing its *own* battery state, while
-also allowing another 'authorized' device to modify parameters like minimum
-safe battery capacity in a standard way.
+Perhaps one device in the same home has a rich UI (such as a TV), which the
+client wishes to use to turn on or off other devices throughout the household.
+This can be accomplished by implementing a [operating mode](resource_types/core/202-operatingmode/redoc_wrapper.md)
+resource for each device, enabling the user to modify each device's operating
+mode accordingly, and allowing manufacturers to specify custom operating modes
+based on their products specific needs.
 
 Each of the above examples describes an instance of a well-defined "Resource
 Type" as implemented on a specific device. These "Resource Types" are how
