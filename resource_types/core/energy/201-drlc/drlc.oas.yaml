@@ -74,12 +74,16 @@ paths:
         schema:
           "$ref": "#/definitions/DRLCUpdate"
         x-example:
-          th: 20
+          rs: 20
+          du: 60
+          cr: 4
       responses:
         '204':
           description: ''
           x-example:
-            th: 20
+            rs: 20
+            du: 60
+            cr: 4
           schema:
             "$ref": "#/definitions/DRLCUpdate"
         '400':
