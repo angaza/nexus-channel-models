@@ -59,15 +59,16 @@ paths:
         '205':
           description: ''
           x-example:
-            vb: 11635
-            cp: 50
-            th: 20
-            ca: 32000
-            ds: true
-            cg: true
-            lb: true
-            ft: false
+            trt: 101
+            ct: 10
+            si: 3600
             ss: 4
+            v: {
+            "cp": [50, 55, 60, 70, 90, 95, 99, 100, 60, 70],
+            "vb":  [11635, 11700, 11800, 12400, 12800, 12850, 12900, 12910, 11800, 12400]
+            }
+            thref: "/batt1"
+            ctm: 20
           schema:
             "$ref": "#/definitions/Samplelog"
     post:
@@ -75,6 +76,10 @@ paths:
       description: |
         Update number of stored samples (`ct`) and seconds between samples
         (`si`) if supported.
+
+        Example `POST` request payload in CBOR:
+          `BF6363746D0A627369190E10FF`
+
       parameters:
         # - "$ref": "#/parameters/interface"
       - name: body
@@ -83,13 +88,13 @@ paths:
         schema:
           "$ref": "#/definitions/SamplelogUpdate"
         x-example:
-          ct: 10
+          ctm: 10
           si: 3600
       responses:
         '204':
           description: ''
           x-example:
-            ct: 10
+            ctm: 10
             si: 3600
           schema:
             "$ref": "#/definitions/SamplelogUpdate"

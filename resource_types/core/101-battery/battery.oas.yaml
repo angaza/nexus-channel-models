@@ -51,7 +51,11 @@ paths:
             "$ref": "#/definitions/Battery"
     post:
       summary: 'Update battery low state-of-charge threshold'
-      description: 'Update battery threshold (th) if supported.'
+      description: |
+        Update battery threshold (th) if supported.
+
+        Example `POST` request payload in CBOR:
+          `BF62746814FF`
       parameters:
         # - "$ref": "#/parameters/interface"
       - name: body
