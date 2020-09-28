@@ -1,0 +1,256 @@
+---
+swagger: '2.0'
+info:
+  title: Sample Log
+  version: 0.5.0
+  license:
+    name: Angaza Data Model License (MIT License)
+    url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
+    x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  #- application/vnd.ocf+cbor
+  - application/json
+paths:
+  "/slog":  # suggested URI
+    get:
+      summary: Retrieve log of samples for specific resource instance
+      description: |
+        This Resource describes a generic way to expose 'logged' historical
+        data for any other resource type existing on the same device.
+
+        This is accomplished by specifying the resource type and URI being
+        logged (providing the `href` and `rtr` for the instance hosted on
+        this device), as well as an array of past logged values for that
+        resource instance.
+
+        For example, this resource can be used to expose 'historical'
+        (rather than instantaneous) values of battery charge and voltage if
+        mapped to a `battery` resource instance on the same device, to make
+        trend data available.
+
+        The logged samples are assumed to be sampled at a fixed interval
+        (`si`).
+
+        An implementation **may** choose to support updating of the `si`
+        and `ctm` parameters to configure the logging interval, but this is
+        optional.
+
+        An implementation **may** choose to support parsing CoAP 'URI-Query'
+        to restrict what values are returned in the `v` array in response to
+        a `GET request` (e.g. client includes `?v=cp&v=vb` to request retrieving
+        only battery charge percentage and voltage even if other values are
+        available). This query/filtering support is optional,
+        and a Nexus Channel Core device may choose to completely ignore any
+        'URI-Query' and return the entire resource representation.
+
+        Example `GET` response body in CBOR:
+          `BF6374727418656263740A627369190E10627373046176A26263708A18321837183C1846185A185F18631864183C18466276628A192D73192DB4192E1819307019320019323219326419326E192E181930706363746D14FF`
+
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      responses:
+        '205':
+          description: ''
+          x-example:
+            vb: 11635
+            cp: 50
+            th: 20
+            ca: 32000
+            ds: true
+            cg: true
+            lb: true
+            ft: false
+            ss: 4
+          schema:
+            "$ref": "#/definitions/Samplelog"
+    post:
+      summary: Update logging parameters
+      description: |
+        Update number of stored samples (`ct`) and seconds between samples
+        (`si`) if supported.
+      parameters:
+        # - "$ref": "#/parameters/interface"
+      - name: body
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SamplelogUpdate"
+        x-example:
+          ct: 10
+          si: 3600
+      responses:
+        '204':
+          description: ''
+          x-example:
+            ct: 10
+            si: 3600
+          schema:
+            "$ref": "#/definitions/SamplelogUpdate"
+        '400':
+          description: Provided payload was not understood or ill-formatted.
+        '403':
+          description: Requester not authorized to update parameters.
+
+# Query parameters optional, Channel Core does not require interface query support
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+    - oic.if.rw
+    - oic.if.baseline
+definitions:
+  Samplelog:
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.channel.core.samplelog
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 301
+        maximum: 301
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+          enum:
+          - oic.if.rw  # oic.if.baseline optional
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      trt:
+        description: |
+          Target 'Resource Type Registry' value that this Samplelog Resource
+          is tracking. (For example, '101' for battery resource.)
+        readOnly: true
+        type: integer
+        minimum: 0
+        example: 101
+      ct:
+        description: |
+          Current 'count' of valid samples stored and accessible now (the
+          current length of the array represented by parameter `v`)
+
+        readOnly: true
+        type: integer
+        format: uint
+        example: 10
+      si:
+        description: |
+          Seconds between samples ('seconds interval') stored by this resource.
+          For example, if this value is '3600', then samples (elements in array
+          `v`) are stored at hourly intervals.
+        minimum: 1
+        readOnly: true
+        type: integer
+        format: uint
+        example: 3600
+      ss:
+        description: |
+          Seconds since the most recent sample returned in this resource (first
+          array value in 'v') was measured.
+        minimum: 0
+        readOnly: true
+        type: integer
+        format: uint
+        example: 4
+      v:
+        description: |
+          Array of values logged from the target resource. Each entry in the
+          array is a *map*, each map containing the logged values for a
+          specific instant in time from the target resource.
+
+          The array is sorted from newest to oldest, that is, element 0 is
+          the 'most recent' sample, and the last element is the 'oldest' sample.
+
+          The seconds since element 0 was sampled are indicated by parameter
+          `ss` (current time minus `ss` is the timestamp of element 0).
+
+          The timestamp of the remaining samples can be computed by adding `si`
+          to the timestamp of element 0, e.g.:
+
+            1. `Element 1 Timestamp = TS(0) + 1*si`
+            2. `Element 2 Timestamp = TS(0) + 2*si`
+            3. `Element 3 Timestamp = TS(0) + 3*si`
+            4. (etc)
+
+          Each array element *should* contain the same logged values (e.g.
+          if battery `cg` is logged in element 1, it should also be present
+          in element 5).
+        type: object
+        minItems: 0
+        readOnly: true
+        example:
+          {
+            "cp": [50, 55, 60, 70, 90, 95, 99, 100, 60, 70],
+            "vb":  [11635, 11700, 11800, 12400, 12800, 12850, 12900, 12910, 11800, 12400]
+          }
+      thref:
+        description: |
+          Target href of the resource instance that this Samplelog Resource
+          is tracking. **Required to disambiguate if multiple instances of a
+          given resource type are present on a resource.**
+        readOnly: true
+        type: string
+        format: text
+        example: "/batt1"
+      ctm:
+        description: |
+          Maximum number of stored samples supported by this device (max
+          permissible value of `ct`)
+        type: integer
+        format: uint
+        example: 20
+    type: object
+    required:
+    - tr
+    - ct
+    - ss
+    - si
+    - v
+  SamplelogUpdate:
+    properties:
+      ctm:
+        description: |
+         Desired count of samples to buffer and make available for future
+         queries.
+        minimum: 1
+        type: integer
+        example: 10
+      si:
+        description: |
+          Desired interval between samples, in seconds. For example, to set
+          datalogging to an hourly interval, request "3600" for this parameter.
+        minimum: 1
+        type: integer
+        example: 3600
+    type: object
