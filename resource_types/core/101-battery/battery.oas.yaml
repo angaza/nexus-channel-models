@@ -21,39 +21,41 @@ paths:
   "/batt":  # suggested URI
     get:
       summary: Retrieve current battery status
-      description: This Resource describes the attributes associated with a battery.
-        The fields 'cp' (charge percentage, 0-100%) and 'mv' (battery voltage
-        in millivolts) are the only required properties.
+      description: |
+        This Resource describes the attributes associated with a battery, and
+        allows authorized devices to update the battery 'low state of charge'
+        threshold, if available.
+
+        The minimum set of properties to implement are `cp` and `mv`.
+
+        Example `GET` response body in CBOR:
+          `BF627662192D73626370183262746814626361197D00626473F5626367F5626C62F5626674F462737304FF`
 
         Adapted from OCF spec [`oic.r.energy.battery`](https://www.oneiota.org/revisions/6148)
       parameters:
         # - "$ref": "#/parameters/interface"
       responses:
-        '200':
+        '205':
           description: ''
           x-example:
-            # rt, rtr, and if are not typically returned
-            # (requires optional 'oic.if.baseline' interface query support)
-            rt:
-            - angaza.com.nexus.channel.core.battery
-            rtr:
-            - 101
-            if:
-            - oic.if.rw
-            cp: 50
-            ca: 3000
-            cg: true
-            ds: false
-            lb: false
             vb: 11635
+            cp: 50
             th: 20
+            ca: 32000
+            ds: true
+            cg: true
+            lb: true
             ft: false
             ss: 4
           schema:
             "$ref": "#/definitions/Battery"
     post:
-      summary: 'Update battery low-voltage threshold'
-      description: 'Update battery threshold (th) if supported.'
+      summary: 'Update battery low state-of-charge threshold'
+      description: |
+        Update battery threshold (th) if supported.
+
+        Example `POST` request payload in CBOR:
+          `BF62746814FF`
       parameters:
         # - "$ref": "#/parameters/interface"
       - name: body
@@ -64,7 +66,7 @@ paths:
         x-example:
           th: 20
       responses:
-        '200':
+        '204':
           description: ''
           x-example:
             th: 20
@@ -83,6 +85,7 @@ parameters:
     type: string
     enum:
     - oic.if.rw
+    - oic.if.baseline
 definitions:
   Battery:
     properties:
@@ -130,7 +133,7 @@ definitions:
         format: uint
         example: 11635
       cp:
-        description: The current charge percentage.
+        description: The current charge percentage (state-of-charge).
         maximum: 100
         minimum: 0
         readOnly: true
@@ -146,7 +149,12 @@ definitions:
         type: integer
         format: uint
         example: 20
-
+      ca:
+        description: The total capacity in milliAmp-hours (mAh).
+        readOnly: true
+        type: integer
+        format: uint
+        example: 32000
       ds:
         description: True if discharging, false otherwise.
         readOnly: true
@@ -160,12 +168,6 @@ definitions:
           defined by `th`.
         readOnly: true
         type: boolean
-      ca:
-        description: The total capacity in milliAmp-hours (mAh).
-        readOnly: true
-        type: integer
-        format: uint
-        example: 32000
       ft:
         description: True if battery defect or fault detected.
         readOnly: true
@@ -178,7 +180,7 @@ definitions:
         readOnly: true
         type: integer
         format: uint
-        example: 4 
+        example: 4
     type: object
     required:
     - cp  # charge percentage
@@ -193,4 +195,4 @@ definitions:
         example: 20
     type: object
     required:
-    - batterythreshold
+    - th

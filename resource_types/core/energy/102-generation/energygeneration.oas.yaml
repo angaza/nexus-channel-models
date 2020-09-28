@@ -4,70 +4,75 @@ info:
   title: Energy Generation
   version: 0.7.0
   license:
-    name: MIT License
+    name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
     x-copyright: Copyright 2020 Angaza, Inc. All rights reserved
 schemes:
   - coap
 consumes:
-  - application/vnd.ocf+cbor
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
 produces:
-  - application/vnd.ocf+cbor
+  #- application/vnd.ocf+cbor
+  - application/json
 paths:
   "/ein":  # suggested URI
     get:
-      description: This Resource describes the attributes associated with a
+      summary: Retrieve current energy generation status
+      description: |
+        This Resource describes the attributes associated with a
         source (such as a solar panel, AC grid, or DC microgrid) which is
-        generating energy used by this device.
+        generating energy.
 
         This resource exposes instantaneous power measurements,
         cumulative energy measurements (watt-hours), and the type of the source
         (solar, microgrid, etc) if available.
 
-        The minimum set of properties to implement are 'vi' and 'ai'.
+        The minimum set of properties to implement are `vi` and `ai`.
 
         All properties of this resource are read-only.
 
-        Adapted from OCF specs 'oic.r.energy.generation' and 'oic.r.powersource',
-        as composite resources with linked lists are not currently supported.
+        Example `GET` response body in CBOR:
+          `BF627669195DEB626169185362706918C762737401626674F462656718B563656773187863656770183C62737304FF`
+
+        Adapted from OCF specs [`oic.r.energy.generation`](https://www.oneiota.org/revisions/6173)
+        and [`oic.r.powersource`](https://www.oneiota.org/revisions/6213).
       parameters:
-      - "$ref": "#/parameters/interface"
+      # - "$ref": "#/parameters/interface"
       responses:
-        '200':
+        '205':
           description: ''
           x-example:
-            # rt, rtr, and if are not typically returned
-            # (requires optional 'oic.if.baseline' support)
-            rt:
-            - angaza.com.nexus.channel.core.energy.generation
-            rtr:
-            - 102
-            if:
-            - oic.if.r
+            vi: 24043  # 24.04V
+            ai: 83  # 0.832A
+            pi: 199  # 19.9W
             st: 1  # DC solar
             ft: false  # no fault detected
-            pi: 2000  # 20W
-            vi: 24043  # 24.04V
-            ai: 832  # 0.832A
-            eg: 18.1  # 18.1Wh
+            eg: 181  # 18.1Wh
             egs: 120  # started measuring eg 2 hours ago
             egp: 60  # eg is measured in 1-hour periods
             ss: 4  # values valid as of 4 seconds ago
           schema:
-            "$ref": "#/definitions/Battery"
+            "$ref": "#/definitions/Energygeneration"
+
+# Query parameters optional, Channel Core does not require interface query support
 parameters:
   interface:
     in: query
     name: if
     type: string
     enum:
-    - oic.if.rw
+    - oic.if.r
+    - oic.if.baseline
 definitions:
-  Battery:
+  Energygeneration:
     properties:
       rt:
-        description: The Resource Type.
-          (only reported if oic.if.baseline interface query is supported)
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
         items:
           enum:
           - angaza.com.nexus.channel.core.energy.generation
@@ -78,36 +83,59 @@ definitions:
         readOnly: true
         type: array
       rtr:
-        description: The Nexus Channel Core Resource Type Registry value.
-          (only reported if oic.if.baseline interface query is supported)
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
         readOnly: true
         type: integer
         minimum: 102
         maximum: 102
       if:
-        description: The OCF Interface set supported by this Resource.
-          (only reported if oic.if.baseline interface query is supported)
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
         items:
           enum:
-          - oic.if.rw  # oic.if.baseline optional
+          - oic.if.r  # oic.if.baseline optional
           type: string
         minItems: 1
         uniqueItems: true
         readOnly: true
         type: array
+      vi:
+        description: |
+          Instantaneous 'voltage input', in millivolts.
+          (RMS if AC).
+        readOnly: true
+        type: integer
+        format: uint
+        example: 24043
+      ai:
+        description: Instantaneous 'current input', in centiamps.
+        type: integer
+        format: uint
+        example: 83
+      pi:
+        description: Instantaneous 'power input', in deciwatts.
+        readOnly: true
+        type: integer
+        format: uint
+        example: 199
       st:
-        description: Type of power generator.
-          Possible types -
-            0 = Disconnected/None
-            1 = DC Solar
-            2 = AC Grid/microgrid (as a source)
-            3 = DC Grid/microgrid (as a source)
-            4 = AC Wind power
-            5 = DC Wind power
-            6 = AC Hydro power
-            7 = DC Hydro power
-            8 = AC Petrol/Diesel Generator
-            100 = Unknown
+        description: |
+          Type of power generator. Known types -
+            * 0 = Disconnected/None
+            * 1 = DC Solar
+            * 2 = AC Grid/microgrid (as a source)
+            * 3 = DC Grid/microgrid (as a source)
+            * 4 = AC Wind power
+            * 5 = DC Wind power
+            * 6 = AC Hydro power
+            * 7 = DC Hydro power
+            * 8 = AC Petrol/Diesel Generator
+            * 100 = Unknown
         readOnly: true
         type: integer
         enum:
@@ -119,31 +147,27 @@ definitions:
           - 5
           - 6
           - 100
-      sf:
-        description: True if there is a detectable fault on the generation side
-          ('source fault', such as a short).
+        example: 1
+      ft:
+        description: True if there is a detectable fault for this source
+          (such as a reversed polarity DC input).
         readOnly: true
         type: boolean
-      pi:
-        description: Instantaneous 'power input', in centiwatts.
-        readOnly: true
-        type: integer
-      vi:
-        description: Instantaneous 'voltage input', in millivolts.
-        readOnly: true
-        type: integer
-      ai:
-        description: Instantaneous 'current input', in centiamps.
-        type: integer
+        example: false
       eg:
         description: |
-          'Energy generated' in deciwatt-hours(Wh / 10). Computed over a time window defined by egs and egp.
+          'Energy generated' in deciwatt-hours(Wh / 10). Computed over a time
+          window defined by `egs` and `egp`.
         type: integer
+        format: uint
+        example: 181
       egs:
         description: |
           'Energy generation start'. Minutes in the past (minutes ago)
           when the reported `eg` value began accumulation.
         type: integer
+        format: uint
+        example: 120
       egp:
         description: |
           'Energy generation period'. Minutes since `egs` over which
@@ -151,12 +175,16 @@ definitions:
           `egp` is 60, the value of `eg` represents the watt-hours generated during
           the past hour.
         type: integer
+        format: uint
+        example: 60
       ss:
         description: Seconds since the observed data in this resource was
           measured.
+        minimum: 0
         readOnly: true
         type: integer
         format: uint
+        example: 4
 
     type: object
     required:
