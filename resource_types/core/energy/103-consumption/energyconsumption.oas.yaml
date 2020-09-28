@@ -44,22 +44,17 @@ paths:
       parameters:
       # - "$ref": "#/parameters/interface"
       responses:
-        '200':
+        '205':
           description: ''
           x-example:
-            # rt, rtr, and if are not typically returned
-            # (requires optional 'oic.if.baseline' support)
-            rt:
-            - angaza.com.nexus.channel.core.energy.consumption
-            rtr:
-            - 103
-            if:
-            - oic.if.r
-            st: 1  # solar
+            vo: 12021
+            ao: 104
+            po: 125
+            lt: 70
             ft: false  # no fault detected
-            po: 2000  # 20W
-            vo: 24043  # 24.04V
-            ao: 832  # 0.832A
+            eo: 115
+            eos: 120
+            eop: 60
             ss: 4  # values valid as of 4 seconds ago
           schema:
             "$ref": "#/definitions/Energyconsumption"
@@ -71,7 +66,7 @@ parameters:
     name: if
     type: string
     enum:
-    - oic.if.rw
+    - oic.if.r
 definitions:
   Energyconsumption:
     properties:
@@ -100,7 +95,7 @@ definitions:
           (only reported if oic.if.baseline interface query is supported)
         items:
           enum:
-          - oic.if.rw  # oic.if.baseline optional
+          - oic.if.r  # oic.if.baseline optional
           type: string
         minItems: 1
         uniqueItems: true
@@ -125,7 +120,7 @@ definitions:
         type: integer
         format: uint
         example: 125
-      ldt:
+      lt:
         description: |
           Type of output load. Known types -
             * 0 = Disconnected/None

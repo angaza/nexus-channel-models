@@ -22,9 +22,11 @@ paths:
     get:
       summary: Retrieve current battery status
       description: |
-        This Resource describes the attributes associated with a battery.
-        The fields 'cp' (charge percentage, 0-100%) and 'mv' (battery voltage
-        in millivolts) are the only required properties.
+        This Resource describes the attributes associated with a battery, and
+        allows authorized devices to update the battery 'low state of charge'
+        threshold, if available.
+
+        The minimum set of properties to implement are `cp` and `mv`.
 
         Example `GET` response body in CBOR:
           `BF627662192D73626370183262746814626361197D00626473F5626367F5626C62F5626674F462737304FF`
@@ -33,7 +35,7 @@ paths:
       parameters:
         # - "$ref": "#/parameters/interface"
       responses:
-        '200':
+        '205':
           description: ''
           x-example:
             vb: 11635
@@ -60,7 +62,7 @@ paths:
         x-example:
           th: 20
       responses:
-        '200':
+        '204':
           description: ''
           x-example:
             th: 20
@@ -127,7 +129,7 @@ definitions:
         format: uint
         example: 11635
       cp:
-        description: The current charge percentage.
+        description: The current charge percentage (state-of-charge).
         maximum: 100
         minimum: 0
         readOnly: true
@@ -189,4 +191,4 @@ definitions:
         example: 20
     type: object
     required:
-    - batterythreshold
+    - th
