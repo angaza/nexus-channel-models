@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Energy Generation
-  version: 0.7.0
+  version: 0.7.1
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -18,7 +18,7 @@ produces:
   #- application/vnd.ocf+cbor
   - application/json
 paths:
-  "/ein":  # suggested URI
+  "/egen":  # suggested URI
     get:
       summary: Retrieve current energy generation status
       description: |
