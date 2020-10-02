@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Demand Response Load Control (DRLC)
-  version: 0.7.0
+  version: 0.7.1
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -226,7 +226,7 @@ definitions:
         description: |
           The duration, in minutes, of the demand response signal.
           (The maximum duration is 1 day or 1440 minutes).
-          A value of 0 means 'no demand resposne' or 'cancel existing
+          A value of 0 means 'no demand response' or 'cancel existing
           demand response behavior' (go to an 'unrestricted' operating mode).
         minimum: 0
         maximum: 1440
@@ -252,4 +252,6 @@ definitions:
         example: 4
     type: object
     required:
-    - th
+    - ts
+    - du
+    - cr

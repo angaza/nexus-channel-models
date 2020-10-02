@@ -23,7 +23,8 @@ paths:
       summary: Retrieve current battery status
       description: |
         This Resource describes the attributes associated with a battery, and
-        allows authorized devices to update the battery 'low state of charge'
+        allows authorized devices (authorized via a separate system, e.g.
+        full Nexus Channel security) to update the battery 'low state of charge'
         threshold, if available.
 
         The minimum set of properties to implement are `cp` and `mv`.

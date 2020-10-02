@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Sample Log
-  version: 0.5.0
+  version: 0.5.1
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -259,3 +259,5 @@ definitions:
         type: integer
         example: 3600
     type: object
+    required:
+      - si

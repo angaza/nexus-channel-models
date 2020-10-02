@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Operating Mode
-  version: 0.7.0
+  version: 0.7.1
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -44,8 +44,8 @@ paths:
         '205':
           description: ''
           x-example:
-            sm: ["fullSpeed", "halfSpeed", "off"]
-            mo: "fullSpeed"
+            sm: ["fullSpeed", "halfSpeed", "variableSpeed", "off"]
+            mo: "variableSpeed"
             mp: 5
           schema:
             "$ref": "#/definitions/Operatingmode"
@@ -166,7 +166,7 @@ definitions:
           the list `sm`.
         type: string
         format: text
-        example: "fullSpeed"
+        example: "variableSpeed"
       mp:
         description: |
           Optional integer 'mode parameter', meaning is context dependent.
