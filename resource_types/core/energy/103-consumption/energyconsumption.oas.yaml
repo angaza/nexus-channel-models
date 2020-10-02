@@ -18,7 +18,7 @@ produces:
   #- application/vnd.ocf+cbor
   - application/json
 paths:
-  "/econ":  # suggested URI
+  "/eout":  # suggested URI
     get:
       summary: Retrieve current load/output energy consumption
       description: |
