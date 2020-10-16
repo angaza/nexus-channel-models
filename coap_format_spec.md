@@ -132,7 +132,7 @@ transmitted packet to fit within 128 bytes after adding header and footer data).
 
 ## Link Layer: Device Addressing
 
-No IP networking or internet access or assumed or implied for any devices.
+No IP networking or internet access is assumed or implied for any devices.
 Instead, Nexus Channel Core CoAP messages are exchanged over lower-level links
 including but not limited to:
 
@@ -145,44 +145,8 @@ including but not limited to:
 
 The COAP header and CBOR payload contain no address information, however,
 every Nexus Channel Core device has a "Nexus ID". This Nexus ID is a 6-byte
-identifier which is globally unique. It consists of two parts:
-
-* 4-byte 'device ID' unique for all IDs assigned from a given 'authority'
-* 2-byte 'authority ID' indicating what party assigned the device ID
-
-Every time a Nexus Channel Core message is sent or received between nodes,
-the source and destination Nexus ID addresses are included. This is done by
-middleware code that sits between the resource models and the link layer,
-which is aware of the devices "Nexus ID", and adds this information before
-passing the CoAP packet to the link layer. In many cases, this may be as
-simple as hard-coding a constant (known at factory production time) in the
-link layer as the 'Nexus ID source address' of the device, and letting
-the application code 'fill in' a static 6-byte field with the destination
-address.
-
-The Nexus ID addresses might not be visible on the wire, as the link-layer
-may abbreviate or elide them as long as they can be reconstructed in full by
-the receiver's link layer before passing the message upward to the Nexus
-Channel Core layer.
-
-It is assumed that the lower-level links have a way to 'map' Nexus Channel Core
-"Addresses" (6-byte Nexus IDs) to lower-level link node addresses if not
-sending the full 6-byte source and destination addresses directly on
-the wire. The details of this address bridging is not described in this
-specification.
-
-## Link Layer: Multicasting
-
-Nexus Channel Core assumes that multicasting is possible, that is, that any
-device may send a 'broadcast' that is received by all other devices on the
-local network.
-
-This broadcast may elicit zero or one responses from connected devices (implying
-that this broadcast contains content that is understood by one specific
-device).
-
-A link layer *may* support broadcasting with responses from all recipients,
-which can speed up resource discovery, but is not strictly required.
+identifier which is globally unique and that supports multicast and limited-scope
+(such as link-local) address assignment. Read more [here](TODO).
 
 ## Reference Implementation
 
