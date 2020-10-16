@@ -85,15 +85,14 @@ same token value.
 
 The following option type must be present in all requests:
 
-* Uri-Path (Option Number 11). Typical Nexus Channel Core resource
-URIs follow a pattern of xx(x)/yy(y)/(zzz), with xx(x) indicating the category
-of resource,  yy(y) indicating the primary resource type, and (zzz) optionally
-urther defining the resource. In this way, the URI may *roughly* mirror the
-OCF resource definition 'type' (rt). However, this URI scheme is suggested and
-not required.
-
-(There may be multiple `uri-path` options present, e.g. 'batt/main' and
-'batt/sec' are both valid URIs, as is just 'batt').
+* Uri-Path (Option Number 11). This option will be present one time for each
+portion of the `uri-path`. For example, a resource located at URI `batt` would
+have one `uri-path` option in the GET/POST request, but a resource located at
+URI `batt/secondary` would have two `uri-path` options (one for `batt`, one
+for `secondary`).
+Typical Nexus Channel Core resource URIs follow a pattern of xx(x)/yy(y)/(zzz),
+with xx(x) indicating the category of resource,  yy(y) indicating the primary
+resource type, and (zzz) optionally further defining the resource instance.
 
 The following option type *should* be present in all responses:
 
@@ -217,4 +216,4 @@ underlying link layer is present.
 * `b4` - Option delta '0xb' (11, `uri-path`), length 4
 * `62 61 74 74` - the value for `uri-path`, which is 'batt' in ASCII
 * `04` - Option delta '0x0` (0, still `uri-path`), length 4
-* `6d 61 69 6e` - the vlaue for `uri-path, which is `main` in ASCII
+* `6d 61 69 6e` - the value for `uri-path, which is `main` in ASCII
