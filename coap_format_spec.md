@@ -1,6 +1,6 @@
 # Nexus Channel Core - CoAP Specification
 
-Version: 0.9.0
+Version: 0.9.1
 
 ## Purpose and Background
 
@@ -83,22 +83,24 @@ same token value.
 
 ## CoAP Header - Options
 
-The following option type must be present:
+The following option type must be present in all requests:
 
-* Uri-Path (Option Number 11). Typical Nexus Channel Core resource
-URIs follow a pattern of xx(x)/yy(y)/(zzz), with xx(x) indicating the category
-of resource,  yy(y) indicating the primary resource type, and (zzz) optionally
-urther defining the resource. In this way, the URI may *roughly* mirror the
-OCF resource definition 'type' (rt). However, this URI scheme is suggested and
-not required.
+* Uri-Path (Option Number 11). This option will be present one time for each
+portion of the `uri-path`. For example, a resource located at URI `batt` would
+have one `uri-path` option in the GET/POST request, but a resource located at
+URI `batt/secondary` would have two `uri-path` options (one for `batt`, one
+for `secondary`).
+Typical Nexus Channel Core resource URIs follow a pattern of xx(x)/yy(y)/(zzz),
+with xx(x) indicating the category of resource,  yy(y) indicating the primary
+resource type, and (zzz) optionally further defining the resource instance.
 
-The following option type *should* be present when sending content:
+The following option type *should* be present in all responses:
 
 * Content-Format (Option Number 12) with a value of 10000, representing
 `application/vnd.ocf+cbor` (all Nexus Channel Core compliant resources
 must be instances of OCF compliant resource models).
 
-The following option type *may* be present:
+The following option type *may* be present in requests:
 
 * Uri-Query (Option Number 15) representing an OCF query string, e.g.
 `if=oic.if.baseline`. Although hosted resources do have valid OCF interface
@@ -189,3 +191,29 @@ which can speed up resource discovery, but is not strictly required.
 The [nexus-embedded](https://github.com/angaza/nexus-embedded/tree/master/nexus)
 implementation meets the above specifications, and assumes a compliant
 underlying link layer is present.
+
+### Appendix: Example Compliant CoAP Headers
+
+1. `GET` to `/batt` resource URI:
+
+10 bytes, as below:
+
+`51 01 00 04 8a b4 62 61 74 74`
+
+* `51 01 00 04` - Base CoAP header, with message ID 4 and token length 1.
+* `8a` - Token value
+* `b4` - Option delta 'b' (11, `uri-path`), length 4
+* `62 61 74 74` - the value for `uri-path`, which is 'batt' in ASCII
+
+2. `GET` to `/batt/main` resource URI (demonstrating longer URI paths):
+
+15 bytes, as below:
+
+`51 01 00 01 c1 b4 62 61  74 74 04 6d 61 69 6e`
+
+* `51 01 00 01` - Base CoAP header, with message ID 1 and token length 1.
+* `c1` - Token value
+* `b4` - Option delta '0xb' (11, `uri-path`), length 4
+* `62 61 74 74` - the value for `uri-path`, which is 'batt' in ASCII
+* `04` - Option delta '0x0` (0, still `uri-path`), length 4
+* `6d 61 69 6e` - the value for `uri-path, which is `main` in ASCII
