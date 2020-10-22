@@ -21,17 +21,23 @@ The Nexus ID is a 6-byte structure that consists of two parts:
 +-----------+-----------------+
 ```
 
-* 2-byte 'Authority ID' indicating what party assigned the device ID
+* 2-byte 'Authority ID' indicating what party assigned the Device ID
 * 4-byte 'Device ID' unique for all IDs assigned from a given authority
 
-Manufacturers are assigned a unique Authority ID by the maintainer of Nexus
-(currently Angaza). Manufacturers can then serialize a practically infinite
-number of Device IDs according to their own practices and preferences. 
+Authority IDs are assigned by an administrator of Nexus IDs (currently only Angaza,
+but in the future this could be an industry-wide organization like GOGLA). Authority
+IDs function to define unique address spaces. For example, the special Authority ID
+`0x0000` is reserved for PAYG IDs, that is, IDs that are meant to be used for devices
+registered on PAYG software platforms.
 
-As long as all manufacturers guarantee that they are using their own Authority 
-ID and that there are no collisions within their own Device ID space, then there 
-cannot be any identity collisions between devices communicating on the same Nexus
-Channel Core network.
+To a manufacturer of a PAYG device, it is possible, then, to request a single Nexus ID
+in this Authority ID space for use as an internal serial number, a PAYG ID, and an ID
+usable for inter-device communication with Nexus Channel Core!
+
+Because Device IDs within a given Authority ID are administered by a central authority
+and globally unique, as long as participating manufacturers guarantee that there are no
+collisions within their own assigned Device ID space, then there cannot be any identity
+collisions between devices using Nexus IDs.
 
 ## External vs. Internal Identifiers
 
@@ -39,12 +45,12 @@ Many device management software platforms require a device-specific identifier
 to reference value-added services related to that device. For example, Angaza 
 uses a device's identifier to reference its related PAYG loan account.
 
-The Device ID part of the Nexus ID *can* be used as an external identifier for
-these purposes, if a manufacturer wishes to reduce the number of serialization
-schemes in use. However, it is not required that the Nexus ID is exposed
-externally. It must just be assigned and stored internally in the device
-firmware (and accessed through Nexus Channel Core APIs) to avoid addressing 
-collisions between devices on a Nexus Channel Core network.
+As described in the previous section, the Device ID part of the Nexus ID *can*
+be used as an external identifier for these purposes, if a manufacturer wishes to
+reduce the number of serialization schemes in use. However, it is not required that
+the Nexus ID is exposed externally. It must just be assigned and stored internally
+in the device firmware to avoid addressing collisions between devices on a Nexus
+Channel Core network.
 
 ## Link Layer: Assumptions and Flexibility
 
@@ -84,6 +90,18 @@ a constant (known at factory production time) in the link layer as the Nexus ID 
 address of the device (for outbound messages) and allocate a static 6-byte field
 for the source address (for inbound messages).
 
+### Protocol Bridging
+
+Because the Nexus ID is globally unique, it can be bridged to other protocols, again,
+as long as the Nexus ID can be fully reconstructed. For example, for devices that are exposed
+to the Internet, the Nexus ID can be expanded to a valid IPV6 address. The size of the Nexus
+ID as 48 bits was selected to allow conversion of the Nexus ID into a valid IPV6 address using
+EUI-64 expansion (same as MAC address expansion, described in [RFC 2373](https://tools.ietf.org/html/rfc2373#page-19)).
+
+This can be accomplished by running an EUI-64 conversion on the Nexus ID to get the lower 64 bits
+of an IPV6 address, and then getting the (fixed) upper 64-bits by registering with an IPV6
+administrator, such as ARIN.
+
 ## Special Authority ID Values
 
 As specified in the last section, Nexus Channel Core requires that the link layer
@@ -96,7 +114,7 @@ The reserved Authority IDs are:
 * **0xFFFF**: reserved for development/testing (anyone can use or make IDs in this
 space in a pre-production/testing context)
 * **0x0000-0x00FF**: reserved for core 'GOGLA-related' use cases currently, including a
-'globally unique' PAYG ID scheme
+globally-unique PAYG ID scheme (`0x0000`)
 * **0xFE80**: reserved for dynamically-assigned Nexus IDs (e.g. Nexus IDs that aren't
 globally-unique, e.g. if the link layer has a scheme where it dynamically assigns
 identities to devices that have no factory assigned ID or outside world mapping to those
@@ -121,24 +139,8 @@ IPV6 standards. `0xFE80` is the [link-local unicast address](https://tools.ietf.
 
 Examples:
 
-* `{0x0000, 0x12345678} // globally-unique GOGLA identifiers; globally-unique Nexus ID`
+* `{0x0000, 0x12345678} // globally-unique PAYG ID; globally-unique Nexus ID`
 * `{0xFE80, 0x00000010} // dynamically-assigned by link layer, valid only in the local system and not globally-unique`
-
-## Internet Addressing and IPV6 Expansion
-
-For devices that are exposed to the Internet, Nexus ID can be expanded to a valid IPV6
-address. The size of the Nexus ID as 48 bits was selected to allow conversion of the Nexus ID into
-a valid IPV6 address using EUI-64 expansion (same as MAC address expansion, described 
-in [RFC 2373](https://tools.ietf.org/html/rfc2373#page-19)).
-
-There is also a granted ARIN CIDR block of IPV6 address space for devices that comply to the
-Nexus Channel Core specification, which means that any Nexus Channel Core device with a factory assigned,
-fixed ID is guaranteed to also have a globally unique, completely valid IPV6 address.
-
-This is accomplished by running an EUI-64 conversion on the Nexus ID to get the lower 64 bits
-of an IPV6 address, and then getting the (fixed) upper 64-bits from the ARIN assigned "Nexus"
-CIDR block (the CIDR block can be viewed by running `whois 2620:89:6000:0:0:0:0:0`). The device
-can then be addressed from the Internet, if connected.
 
 ## Reference Implementation
 
