@@ -136,6 +136,7 @@ No IP networking or internet access is assumed or implied for any devices.
 Instead, Nexus Channel Core CoAP messages are exchanged over lower-level links
 including but not limited to:
 
+* OpenPAYGOLink
 * Bluetooth Low Energy (BLE 5.0)
 * I2C
 * UART
