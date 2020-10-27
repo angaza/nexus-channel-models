@@ -11,7 +11,7 @@ resource models.
 This document also outlines the structure and format of resource type
 definitions.
 
-From a developers perspective, this document provides the information required
+From a developer's perspective, this document provides the information required
 to implement (or select) a CBOR serializer or deserializer, as well as
 design a Nexus Channel Core resource type/model that will be understood by
 other devices.
@@ -193,7 +193,7 @@ to the special URI `nx/res`, which must elicit a response with an array, one
 element for each resource hosted by the device. Each element in the array
 is a map containing the following keys:
 
-* `rte` - Integer value representing a 'resource type'
+* `rtr` - Integer value representing a 'resource type'
 * `href` - Text string indicating the URI where this resource is accessed
 
 Each resource entry in the array *may* also contain:
