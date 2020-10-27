@@ -147,7 +147,7 @@ including but not limited to:
 The COAP header and CBOR payload contain no address information, however,
 every Nexus Channel Core device has a "Nexus ID". This Nexus ID is a 6-byte
 identifier which is globally unique and that supports multicast and limited-scope
-(such as link-local) address assignment. Read more [here](TODO).
+(such as link-local) address assignment. Read more [here](nexus_id_spec.md).
 
 ## Reference Implementation
 
