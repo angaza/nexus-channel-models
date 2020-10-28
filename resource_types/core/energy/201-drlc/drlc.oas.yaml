@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Demand Response Load Control (DRLC)
-  version: 0.7.1
+  version: 0.7.2
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -49,7 +49,7 @@ paths:
 
         Note: A separate resource type may be created to handle local 'price based'
         energy management as described in the "Local Power Distribution"
-        research by Dr. Nordman (http://nordman.lbl.gov/).
+        research by Bruce Nordman (http://nordman.lbl.gov/).
       parameters:
         # - "$ref": "#/parameters/interface"
       responses:
