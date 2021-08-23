@@ -1,0 +1,254 @@
+---
+swagger: '2.0'
+info:
+  title: PAYG Credit
+  version: 'v0.7.1-2021'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/pc:
+    get:
+      summary: Get current PAYG credit state
+      description: |-
+        This resource indicates the remaining PAYG (pay-as-you-go) credit of
+        a specific device. Credit may be time-based or usage-based.
+
+        'modes' are implemented similar to the description of `oic.r.mode`
+        (https://www.oneiota.org/revisions/5310).
+
+        Any device may be 'independent'.
+        Controller-capable devices may be 'leading'.
+        Accessory-capable devices may be 'following'.
+        
+        A "Following" device has PAYG credit managed by another device which is
+        "Leading".
+
+        "Relaying" is not implemented in this release. A "Relaying" device
+        has PAYG credit managed by another device which is "Leading", but
+        a third device follows the "Relaying" device ('chaining' the credit
+        from device A to device C via device B, even though devices A and C
+        are not directly connected).
+
+        The default interface is 'oic.if.rw'. To retrieve the baseline OCF
+        information, it is necessary to query with 'if=oic.if.baseline'.
+
+        Application security constraints -
+        When used with Nexus Channel, the device POSTing must be a controller
+        with an active Nexus Channel Link to this device.
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "PAYG Credit specific information about this device."
+          schema:
+            $ref: '#/definitions/FullPAYGState'
+          x-example:
+            description: "x-example included only for automatic code generation."
+            rt:
+              - angaza.com.nexus.channel.core.paygcredit
+            if:
+              - oic.if.rw
+              - oic.if.baseline
+            re: 603755
+            un: 1
+            mo: 0
+
+    post:
+      summary: Set remaining PAYG credit of the device
+      description: |
+        Sets the remaining PAYG credit of the device. If the endpoint
+        determines that the requesting device is not authorized to control
+        this device, an error response will be returned.
+      parameters:
+        - in: body
+          name: Set Remaining PAYG Credit
+          description: Amount of PAYG credit to set on this device. A value of '4294967295' will "Unlock" the device.
+          schema:
+            $ref: "#/definitions/FullPAYGState"
+
+      responses:
+        200:
+          description: Successfully updated credit (Response payload contains new credit)
+          schema:
+              properties:
+                re:
+                  $ref: '#/definitions/FullPAYGState/properties/re'
+        400:
+          description: Credit amount/value not supported.
+        401:
+          description: Client is not authorized to perform this action (client may lack a Nexus Channel Link to this device)
+        405:
+          description: This device is not currently capable of remotely updating credit (may be in 'independent' mode)
+          schema:
+              properties:
+                mo:
+                  $ref: '#/definitions/FullPAYGState/properties/mo'
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.rw
+      - oic.if.baseline
+
+definitions:
+  PAYGState-ocf-baseline:
+    description: |-
+      Additional properties returned if ?if=oic.if.baseline is appended to query.
+      These are returned alongside all properties described by "FullPAYGState".
+    type: object
+    properties:
+      rt:
+        description: The OCF-Format Resource Type
+        items:
+          enum:
+              - angaza.com.nexus.channel.core.paygcredit
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+      n:
+        $ref: 'https://openconnectivityfoundation.github.io/core/schemas/oic.common.properties.core-schema.json#/definitions/n'
+      id:
+        $ref: 'https://openconnectivityfoundation.github.io/core/schemas/oic.common.properties.core-schema.json#/definitions/id'
+      if:
+        description: The OCF Interface set supported by this Resource.
+        items:
+          enum:
+            - oic.if.rw
+            - oic.if.baseline
+          type: string
+        minItems: 2
+        uniqueItems: true
+        readOnly: true
+        type: array
+
+  FullPAYGState:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.paygcredit
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.rw  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      re:
+        description: >
+          "Remaining". Amount/units of PAYG credit remaining.
+        type: integer
+        format: uint32_t
+        example: 603755
+        minimum: 0
+        maximum: 4294967294
+      un:
+        description: >
+          PAYG Credit "Units". Measurement unit for PAYG credit (seconds, days, gallons).
+          Possible types:
+            * 0 = No units, not recommended
+            * 1 = Seconds
+            * 2 = Hours
+            * 3 = Days
+            * 10 = Liters
+            * 11 = Gallons
+            * 20 = Watt Hour
+        type: integer
+        format: uint8
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3 
+          - 10
+          - 11
+          - 20
+        example: 1
+        readOnly: true
+      mo:
+        description: >
+          PAYG Credit Operating "Mode". Current PAYG credit management mode of this device.
+          If not provided, the device is assumed in an 'independent' state.
+          Possible types
+            * 0 = Independent, not controlled by or controlling PAYG credit of other device
+            * 1 = Leading, controlling PAYG credit of at least one other device
+            * 2 = Following, PAYG credit controlled by another linked device
+            * 3 = Relaying, not implemented.
+        type: integer
+        format: uint8
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+        example: 0
+        readOnly: true
+      di:
+        description: >
+          "Device IDs". List of Nexus ID of devices that are being
+          controlled by the PAYG credit of this device. The NXID is represented
+          as a 6-byte bytestring, where the first two bytes are big endian
+          authority ID, the next four bytes are big endian device ID.
+          Example '\x0B\x10\x06\xF1\x44\x33' represents
+          authority ID 2832 (0x0b10), device ID 116474931 (0x06F14433)
+        type: array
+        readOnly: true
+        minItems: 0
+        maxItems: 8
+        format: binary
+        example:
+          - "\x0B\x10\x06\xF1\x44\x33"
+          - "\x0A\x00\x10\x00\xBA\x54"
+    required:
+      - re
+      - un
