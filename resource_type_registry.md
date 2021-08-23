@@ -7,4 +7,5 @@
 | 202   | angaza.com.nexus.core.operatingmode | [operatingmode.oas.yaml](resource_types/core/202-operatingmode/redoc_wrapper.md) |
 | 301   | angaza.com.nexus.core.samplelog | [samplelog.oas.yaml](resource_types/core/301-samplelog/redoc_wrapper.md) |
 | 401   | angaza.com.nexus.core.paygcredit | [paygcredit.oas.yaml](resource_types/core/401-paygcredit/redoc_wrapper.md) |
+| 1001  | angaza.com.nexus.link.handshake | [linkhandshake.oas.yaml](resource_types/link/1001-linkhandshake/redoc_wrapper.md) |
 | 65000+| development | reserved for development/testing |
