@@ -62,7 +62,7 @@ paths:
           x-example:
             description: "x-example included only for automatic code generation."
             rt:
-              - angaza.com.nexus.channel.core.paygcredit
+              - angaza.com.nx.pc
             if:
               - oic.if.rw
               - oic.if.baseline
