@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Energy Generation
-  version: 0.7.1
+  version: 0.7.2
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -75,7 +75,7 @@ definitions:
           (Only reported if `oic.if.baseline` interface query is supported)
         items:
           enum:
-          - angaza.com.nexus.channel.core.energy.generation
+          - angaza.com.nx.energy.gen
           maxLength: 64
           type: string
         minItems: 1
