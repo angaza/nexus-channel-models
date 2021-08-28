@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: PAYG Credit
-  version: 'v0.7.1-2021'
+  version: 'v0.7.2-2021'
   license:
     name: Angaza Nexus Data Model License (MIT License)
     url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
@@ -94,12 +94,6 @@ paths:
           description: Credit amount/value not supported.
         401:
           description: Client is not authorized to perform this action (client may lack a Nexus Channel Link to this device)
-        405:
-          description: This device is not currently capable of remotely updating credit (may be in 'independent' mode)
-          schema:
-              properties:
-                mo:
-                  $ref: '#/definitions/FullPAYGState/properties/mo'
 
 parameters:
   interface:
