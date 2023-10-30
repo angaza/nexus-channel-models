@@ -20,7 +20,7 @@ layout: none
     </style>
   </head>
   <body>
-    <redoc spec-url="{{ "resource_types/core/101-battery/battery.oas.yaml" | relative_url }}" hide-download-button></redoc>
+    <redoc spec-url="{{ "resource_types/core/environmental/temp.oas.yaml" | relative_url }}" hide-download-button></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
   </body>
 </html>

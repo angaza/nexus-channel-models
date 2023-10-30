@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: PAYG Credit
-  version: 'v0.7.2-2021'
+  version: 'v0.9'
   license:
     name: Angaza Nexus Data Model License (MIT License)
     url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
@@ -243,6 +243,29 @@ definitions:
         example:
           - "\x0B\x10\x06\xF1\x44\x33"
           - "\x0A\x00\x10\x00\xBA\x54"
+      tkn:
+        description: Payg token
+        type: integer
+        format: uint32
+        readOnly: false
+        writeOnly: true
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      tsh: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
     required:
       - re
       - un

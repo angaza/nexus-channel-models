@@ -1,0 +1,139 @@
+---
+swagger: '2.0'
+info:
+  title: Location
+  version: 'v0.9'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/loc:
+    get:
+      summary: Get current location and/or history
+      description: |-
+        This resource indicates the location of or measured by a specific device. 
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "Location information from this device."
+          schema:
+            $ref: '#/definitions/loc'
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.r
+      - oic.if.baseline
+
+definitions:
+  loc:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.locatability.loc
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.rw  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      gts:
+        description: Gateway Timestamp added by gateway device
+        readOnly: true
+        type: integer
+        format: uint32
+      gmid:
+        description: Gateway Manufacturer ID added by gateway device
+        readOnly: true
+        type: integer
+        format: uint16
+      gid:
+        description: AirLink ID of gateway device, added by gateway device
+        readOnly: true
+        type: integer
+        format: uint32_t
+      lt:
+        description: Location Latitude, added by gateway device
+        readOnly: true
+        type: string
+      ln:
+        description: Location Longitude, added by gateway device
+        readOnly: true
+        type: string
+      la:
+        description: Location Accuracy, added by gateway device
+        readOnly: true
+        type: string
+      dss:
+        description: Device signal strength, measured by gateway device
+        readOnly: true
+        type: string
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      ths: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
+    required:
+      - re
+      - un

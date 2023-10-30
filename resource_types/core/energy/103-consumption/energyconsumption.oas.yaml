@@ -114,6 +114,11 @@ definitions:
         type: integer
         format: uint
         example: 104
+      aol:
+        description: Current Limit, in centiamps.
+        type: integer
+        format: uint
+        example: 104
       po:
         description: Instantaneous load 'power output', in deciwatts.
         readOnly: true
@@ -180,6 +185,23 @@ definitions:
         type: integer
         format: uint
         example: 60
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      ths: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
       ss:
         description: Seconds since the observed data in this resource was
           measured.

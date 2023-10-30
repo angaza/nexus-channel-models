@@ -1,0 +1,121 @@
+---
+swagger: '2.0'
+info:
+  title: Customer Configuration
+  version: 'v0.9'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/dcfg:
+    get:
+      summary: Get current customer configuration
+      description: |-
+        This resource indicates the readable properties of the customer information
+        stored in the device e.g. customer information or phone number which is agreed
+        to be shared with authenticated devices 
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "Customer information from this device."
+          schema:
+            $ref: '#/definitions/Customer Config'
+
+    post:
+      summary: Set customer configuration
+      description: |
+        Sets customer information to be stored on the device. Useful for devices with
+        displays so that they could show ownership information etc.
+      parameters:
+        # - $ref: '#/parameters/interface'
+
+      responses:
+        200:
+          description: Successfully updated customer configuration
+          schema:
+              properties:
+                re:
+                  $ref: '#/definitions/Customer Config'
+        401:
+          description: Client is not authorized to perform this action (client may lack a Nexus Channel Link to this device)
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.rw
+      - oic.if.baseline
+
+definitions:
+  Customer Config:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.environmental.temp
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.rw  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      cn:
+        description: Customer Name. Useful for devices with displays
+        type: character array
+        format: utf8 encoded
+        readOnly: false
+      cp:
+        description: Customer Phone. Useful for devices with displays
+        type: character array
+        format: utf8 encoded
+        readOnly: false
+    required:
+      - re
+      - un
