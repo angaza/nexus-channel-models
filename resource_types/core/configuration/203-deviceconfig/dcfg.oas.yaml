@@ -1,0 +1,142 @@
+---
+swagger: '2.0'
+info:
+  title: Device Configuration
+  version: 'v0.9'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/dcfg:
+    get:
+      summary: Get current device configuration
+      description: |-
+        This resource indicates the device configuration
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "Configuration information from this device."
+          schema:
+            $ref: '#/definitions/Device Config'
+
+    post:
+      summary: Set device configuration
+      description: |
+        Sets device specific configuration values. Can be extended to have other values, the ones here are a template suggested set.
+      parameters:
+        # - $ref: '#/parameters/interface'
+
+      responses:
+        200:
+          description: Successfully updated configuration
+          schema:
+              properties:
+                re:
+                  $ref: '#/definitions/Device Config'
+        401:
+          description: Client is not authorized to perform this action (client may lack a Nexus Channel Link to this device)
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.rw
+      - oic.if.baseline
+
+definitions:
+  Device Config:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.environmental.temp
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.rw  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      did:
+        description: Device identifier or serial number
+        type: character array
+        format: utf8
+        readOnly: false
+      aid:
+        description: AirLink ID, a serial or representative number to include in BLE advertisement
+        type: integer
+        format: uint32
+        readOnly: false
+      psc:
+        description: PAYG Token Starting Code - this is required to initialize PAYG Token processing
+        type: integer
+        format: uint32
+      un:
+        description: PAYG Unit for the device. [0 = No units, not recommended, 1 = Seconds, 2 = Hours, 3 = Days, 10 = Liters, 11 = Gallons, 20 = Watt Hour, 21 = kWh]
+        type: integer
+        format: uint8
+      pst:
+        description: Provisioning status, reflected in advertisement packet.  It can be unprovisioned, disabled, recall, stolen, Cash, Loan. The range is from 1-9. If not supported then 0
+        type: integer
+        format: uint8
+      sat:
+        description: Server Access Token - the primary authentication for AirLink devices, like an API key to get access to resource properties. Saved during provisioning and used at each connection by gateway to authenticate itself.
+        type: 20 character array
+        format: uint8
+      cut:
+        description: Current Unix Time - this property can be used to synchronize an RTC, but should not be used for PAYG credit
+        type: integer
+        format: uint32
+      opmax:
+        description: Max brightness, max water flow etc set for safety / environmental reasons / other reasons. This is in addition to opl and osl in the /pu resource
+        type: integer
+        format: uint32
+    required:
+      - re
+      - un

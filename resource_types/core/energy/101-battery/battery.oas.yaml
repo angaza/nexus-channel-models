@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   title: Battery
-  version: 0.7.2
+  version: 0.9
   license:
     name: Angaza Data Model License (MIT License)
     url: https://github.com/angaza/nexus-embedded/blob/master/LICENSE
@@ -132,8 +132,14 @@ definitions:
         description: The current voltage of the battery in millivolts.
         readOnly: true
         type: integer
-        format: uint
+        format: uint32
         example: 11635
+      ib:
+        description: The current charging or discharge current milliamps
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 1000
       cp:
         description: The current charge percentage (state-of-charge).
         maximum: 100
@@ -142,6 +148,17 @@ definitions:
         type: integer
         format: uint
         example: 50
+      cs:
+        description: >
+            Charging state, Sort order:
+             * `0` - No Data
+             * `1` - Charging, fast
+             * `2` - Charging, slow / trickle
+             * `3` - Discharging
+        readOnly: true
+        schema:
+            type: integer
+            enum: [0, 1, 2, 3]
       th:
         description: The threshold percentage for the low battery warning.
           When battery capacity in percent (`cp`) drops below this value, the
@@ -183,6 +200,67 @@ definitions:
         type: integer
         format: uint
         example: 4
+      bh:
+        description: Only for Battery Device, Could be Infrequently reported
+        readOnly: true
+        type: integer
+        format: uint8
+        example: 255
+      cmin:
+        description: Last Charge Cycle Minimum Battery Percentage
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 25 
+      cmax:
+        description: Last Charge Cycle Maximum Battery Percentage
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 85 
+      tc:
+        description: Last Charge Cycle charge time in minutes
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 180 
+      qc:
+        description: Last Charge Cycle charge units in mAh
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 1800
+      pms:
+        description: >
+            Battery power management control, encoded for security, similar to a PAYG token, Sort order:
+             * `0xXXXXXXXX` - Battery Power management is ON
+             * `0xBA1234CA` - or another code manufacturer decides - Battery Power management switch to OFF (Idle for battery draining during battery calibration)
+             * `0xBA1234DA` - or another code manufacturer decides - Battery Power management switched OFF
+        readOnly: true
+        schema:
+            type: integer
+            enum: [0xXXXXXXXX, 0xBA1234CA, 0xBA1234DA]
+        readOnly: false
+        type: integer
+        format: uint32
+        example: 0xBA1234CA 
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      ths: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
     type: object
     required:
     - cp  # charge percentage
@@ -195,6 +273,21 @@ definitions:
         minimum: 0
         type: integer
         example: 20
+      pms:
+        description: >
+            Battery power management control, encoded for security, similar to a PAYG token, Sort order:
+             * `0xXXXXXXXX` - Battery Power management is ON
+             * `0xBA1234CA` - or another code manufacturer decides - Battery Power management switch to OFF (Idle for battery draining during battery calibration)
+             * `0xBA1234DA` - or another code manufacturer decides - Battery Power management switched OFF
+        readOnly: true
+        schema:
+            type: integer
+            enum: [0xXXXXXXXX, 0xBA1234CA, 0xBA1234DA]
+        readOnly: false
+        type: integer
+        format: uint32
+        example: 0xBA1234CA 
+
     type: object
     required:
     - th

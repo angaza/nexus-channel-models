@@ -187,7 +187,23 @@ definitions:
         type: integer
         format: uint
         example: 4
-
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      tsh: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
     type: object
     required:
     - vi  # millivolts from input

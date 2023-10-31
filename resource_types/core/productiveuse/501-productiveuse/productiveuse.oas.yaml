@@ -1,0 +1,181 @@
+---
+swagger: '2.0'
+info:
+  title: Prodctive Use
+  version: 'v0.9'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/pu:
+    get:
+      summary: Get productive output performance and/or history and limits
+      description: |-
+        This resource measures the productive output of a device. Two proxy
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "PAYG Credit specific information about this device."
+          schema:
+            $ref: '#/definitions/Productive Use'
+          x-example:
+            description: "x-example included only for automatic code generation."
+            rt:
+              - angaza.com.nx.pu
+            if:
+              - oic.if.rw
+              - oic.if.baseline
+            re: 603755
+            un: 1
+            mo: 0
+
+    post:
+      summary: Set productive use limits for the device
+      description: |
+        Sets the productive use limits for the device e.g. safe RPM limits for a pump operating in a certain water source.
+      parameters:
+        - in: body
+          name: Set Limits
+          description: Limit set
+          schema:
+            $ref: "#/definitions/Productive Use"
+
+      responses:
+        200:
+          description: Successfully updated 
+        400:
+          description: Value not supported.
+        401:
+          description: Client is not authorized to perform this action (client may lack a Nexus Channel Link to this device)
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.rw
+      - oic.if.baseline
+
+definitions:
+  Productive Use:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.productiveuse.pu
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.rw  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      df: 
+        description: Data format (optional). Preregistered data format for OpenPAYGO Metrics or Angaza Timeseries
+        type: integer
+        format: uint8
+        example: 3
+      pue:
+        description: Productive Equipment Type. e.g. "Surface Pump", "Borehole Pump", "Fishing Light" etc preregistered types internal to manufacturer
+        type: integer
+        format: uint8
+      bat:
+        description: Whether internal battery exists
+        type: bool
+      ft:
+        description: Device Fault. Same as Advertisement packet, default or internal to manufacturer
+        type: integer
+        format: uint8
+      ftd:
+        description: Detailed fault data e.g. overvoltage fault might have an overvoltage measured value.
+        type: integer or byte array
+        format: specific to manufacturer
+      ss:
+        description: Seconds since the observed data in this resource was
+          measured.
+        minimum: 0
+        readOnly: true
+        type: integer
+        format: uint
+        example: 4
+      op:
+        description: Productive Output Primary Metric e.g. Water output for pumps in Litres/hour
+        type: integer
+        format: uint32
+      opl:
+        description: Limit for Productive Output Primary Metric e.g. Max Flow to match drip kit in Litres/hour
+        type: integer
+        format: uint32
+      os:
+        description: Productive Output Secondary Metric e.g. e.g. Pressure for pumps in kPa (1kPa = 10cm water or 0.1 bar)
+        type: integer
+        format: uint32
+      osl:
+        description: Limit for Productive Output Secondary Metric e.g. Max output pressure to apply to drip kit in kPa
+        type: integer
+        format: uint32
+      ts:
+        description: Timestamp of recorded data in Unix format
+        readOnly: true
+        type: integer
+        format: uint32
+      tsh: 
+        description: Any resource with one or more timeseries properties is enabled with this optional property which can indicate that the device has stored historical data while offline that it can sequentially upload to the gateway via multiple reads
+        readOnly: true
+        type: integer
+        format: uint16
+        example: 10
+      thi:
+        description: Whenever this property is available that means it is a timeseries resource. thi = 0, means there is no more timeseries data. Any number greater than zero can be used for indicating which data proceeds especially when the timestamp is the same.
+        readOnly: true
+        type: integer
+        format: uint32
+        example: 2
+    required:
+      - re
+      - un

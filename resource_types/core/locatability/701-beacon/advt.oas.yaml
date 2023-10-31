@@ -1,0 +1,133 @@
+---
+swagger: '2.0'
+info:
+  title: Bluetooth Advertisement
+  version: 'v1.0'
+  license:
+    name: Angaza Nexus Data Model License (MIT License)
+    url: 'https://github.com/angaza/nexus-embedded/blob/master/LICENSE'
+    x-copyright: 'Copyright 2021 Angaza, Inc. All rights reserved.'
+schemes:
+  - coap
+consumes:
+  # Note: JSON provided to render examples using redoc, actual data transmitted
+  # is `application/vnd.ocf+cbor`
+  #- application/vnd.ocf+cbor
+  - application/json
+produces:
+  # - application/vnd.ocf+cbor
+  - application/json
+
+paths:
+  /nx/loc:
+    get:
+      summary: Get device advertisement data
+      description: |-
+        This resource contains BLE advertisement for a specific device, as measured by a gateway
+
+        See also -
+        * angaza.com.nexus.channel.link_handshake - Information on Nexus channel link handshakes
+          
+      parameters:
+        # - $ref: '#/parameters/interface'
+      responses:
+        200:
+          description: "Advertisement information from this device."
+          schema:
+            $ref: '#/definitions/advt'
+
+parameters:
+  interface:
+    in: query
+    name: if
+    type: string
+    enum:
+      - oic.if.r
+      - oic.if.baseline
+
+definitions:
+  advt:
+    type: object
+    properties:
+      rt:
+        description: |
+          **Fixed Specification Value Only**. The Resource Type
+          (Only reported if `oic.if.baseline` interface query is supported)
+        items:
+          enum:
+          - angaza.com.nexus.core.locatability.advt
+          maxLength: 64
+          type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      rtr:
+        description: |
+          **Fixed Specification Value Only**. The Nexus Channel Core Resource
+          Type Registry value (Only reported if `oic.if.baseline` interface
+          query is supported)
+        readOnly: true
+        type: integer
+        minimum: 401
+        maximum: 401
+      if:
+        description: |
+          **Fixed Specification Value Only**. The OCF Interface set
+          supported by this Resource. (Only reported if `oic.if.baseline`
+          interface query is supported)
+        items:
+            enum:
+            - oic.if.r  # oic.if.baseline optional
+            type: string
+        minItems: 1
+        uniqueItems: true
+        readOnly: true
+        type: array
+        x-internal: true
+      mac:
+        description: Mac ID of device, as measured by Gateway
+        type: integer
+        format: uint32_t
+      rv:
+        description: data format version
+        type: integer
+        format: uint16
+      ft:
+        description: Fault status of the device. From 0-23. Any Universal error that should be executed with priority. Error 0 = Unprovisioned, Error 1 = Lost track of PAYG credit (battery off), Error 2 = Battery Fault, Error 3 = Output Overcurrent/Overtemp - details in ftd field in timeseries data, Error 23 = Lost device (e.g. when device doesn't find other Bluetooth devices from it's 'pack'. Errors 4-22 are manufacturer specific
+        type: integer
+        format: uint8
+      aid:
+        description: AirLink ID of the device. Optional numeric ID to make devices of a manufacturer easier to identify without connecting to
+        type: integer
+        format: uint32_t
+      gts:
+        description: Linux epoch format, expires in Y2035
+        type: integer
+        format: uint32_t
+      pst:
+        description: from 0-255 (0xFF) The status of the device according to manufacturer definition. It can be 1-unserialized, 2-unprovisioned, 3-disabled, 4-recall, 5-stolen, 6-9-Manufacturer custom. The range is from 1-9. If not supported then 0
+        readOnly: true
+        type: integer
+      fv: 
+        description: Device firmware version, to facilitate quick OTA selection
+        type: integer
+        format: uint16
+      cr:
+        description: Same as re in payg credit resource. 
+        type: integer
+        format: uint32
+      s1:
+        description: Expected signal strength of this Bluetooth device for a receiver (phone / other Bluetooth device) placed at 1 meter, used for distance estimation. Value is in negative dB (e.g. a value of s1=70 is considered to be -70dB). Calibrated during device prototyping, and adjusted by each device for any changes in it’s transmit power with respect to the transmit power at calibration time (e.g. +2dB transmit power during advertising ⇒ s1=68, if 0dB transmit power at calibration time had yielded an RSSI of -70dB).
+        type: integer
+        format: uint16
+      spare:
+        description: 1 octet left spare for manufacturer to decided to add custom data
+      mid:
+        description: Device's manufacturer ID, as measured by the gateway device
+        type: integer
+        format: uint16
+    required:
+      - re
+      - un
